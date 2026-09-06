@@ -1,118 +1,132 @@
 import { useEffect, useState } from "react";
 
-const API_URL =
-  "/api/students";
+const API_URL = "/api/students";
 
 function App() {
   const [students, setStudents] = useState([]);
-
   const [studentId, setStudentId] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [editingId, setEditingId] = useState(null);
 
-  // Câu 47: Lấy danh sách sinh viên
-  const getStudents = async () => {
-    try {
-      const res = await fetch(API_URL);
-
-      if (!res.ok) {
-        throw new Error("Không thể lấy danh sách sinh viên");
-      }
-
-      const data = await res.json();
-      setStudents(data);
-    } catch (error) {
-      console.error("Lỗi GET:", error);
-    }
+  const loadStudents = async () => {
+    const response = await fetch(API_URL);
+    const data = await response.json();
+    setStudents(data);
   };
 
   useEffect(() => {
-    getStudents();
+    loadStudents();
   }, []);
 
-  // Câu 49: Thêm sinh viên
-  const addStudent = async () => {
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const studentData = {
+      studentId,
+      name,
+      email
+    };
+
+    if (editingId) {
+      await fetch(`${API_URL}/${editingId}`, {
+        method: "PUT",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          studentId: studentId,
-          name: name,
-          email: email,
-        }),
+        body: JSON.stringify(studentData)
       });
 
-      if (!res.ok) {
-        throw new Error("Không thể thêm sinh viên");
-      }
+      alert("Đã cập nhật sinh viên");
+    } else {
+      await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(studentData)
+      });
 
-      const data = await res.json();
-
-      console.log("Đã thêm sinh viên:", data);
-
-      // Lấy lại danh sách sau khi thêm
-      getStudents();
-
-      // Xóa dữ liệu trong form
-      setStudentId("");
-      setName("");
-      setEmail("");
-    } catch (error) {
-      console.error("Lỗi POST:", error);
+      alert("Đã thêm sinh viên");
     }
+
+    setStudentId("");
+    setName("");
+    setEmail("");
+    setEditingId(null);
+
+    loadStudents();
   };
+
+  const handleEdit = (student) => {
+    setEditingId(student._id);
+    setStudentId(student.studentId);
+    setName(student.name);
+    setEmail(student.email);
+  };
+  const handleDelete = async (id) => {
+  await fetch(`${API_URL}/${id}`, {
+    method: "DELETE"
+  });
+
+  alert("Đã xóa sinh viên");
+  loadStudents();
+};
 
   return (
     <div>
       <h1>Danh sách sinh viên</h1>
 
-      {/* Hiển thị danh sách */}
-      {students.length === 0 ? (
-        <p>Chưa có sinh viên</p>
-      ) : (
-        students.map((student) => (
-          <div key={student._id}>
-            <p>MSSV: {student.studentId}</p>
-            <p>Họ tên: {student.name}</p>
-            <p>Email: {student.email}</p>
-            <hr />
-          </div>
-        ))
-      )}
+      {students.map((student) => (
+        <div key={student._id}>
+          <p>MSSV: {student.studentId}</p>
+          <p>Họ tên: {student.name}</p>
+          <p>Email: {student.email}</p>
 
-      <h2>Thêm sinh viên</h2>
+          <button onClick={() => handleEdit(student)}>
+            Sửa
+          </button>
+          <button onClick={() => handleDelete(student._id)}>
+  Xóa
+</button>
 
-      <input
-        placeholder="MSSV"
-        value={studentId}
-        onChange={(e) => setStudentId(e.target.value)}
-      />
+          <hr />
+        </div>
+      ))}
 
-      <br />
-      <br />
+      <h2>
+        {editingId ? "Cập nhật sinh viên" : "Thêm sinh viên"}
+      </h2>
 
-      <input
-        placeholder="Họ tên"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
+      <form onSubmit={handleSubmit}>
+        <input
+          placeholder="MSSV"
+          value={studentId}
+          onChange={(e) => setStudentId(e.target.value)}
+        />
 
-      <br />
-      <br />
+        <br />
 
-      <input
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        <input
+          placeholder="Họ tên"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
 
-      <br />
-      <br />
+        <br />
 
-      <button onClick={addStudent}>Thêm sinh viên</button>
+        <input
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <br />
+
+        <button type="submit">
+          {editingId ? "Cập nhật sinh viên" : "Thêm sinh viên"}
+        </button>
+      </form>
     </div>
   );
 }
