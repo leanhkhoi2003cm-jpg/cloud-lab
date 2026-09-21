@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const app = express();
-const Student = require("../models/Student");
+const Student = require("./models/Student");
 
 app.use(express.json());
 app.use(cors());
