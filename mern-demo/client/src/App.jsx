@@ -75,7 +75,7 @@ function App() {
 
   return (
     <div>
-      <h1>Danh sách sinh viên</h1>
+      <h1>Quản Lý Sinh Viên - Phiên Bản 2.0</h1>
 
       {students.map((student) => (
         <div key={student._id}>
